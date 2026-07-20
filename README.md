@@ -55,8 +55,9 @@ export ALLOW_ORIGIN=https://shop.yuchuntest.com
 线上：
 
 - 用户端：https://shop.yuchuntest.com/
-- 后台：https://shop.yuchuntest.com/admin/
-- BCC 直连（备用）：http://180.76.180.105/shop/
+- 后台：https://shop.yuchuntest.com/admin/ （Token 默认 `dev-admin`）
+- API 网关：`https://2jng249qsad2r.cfc-execute.bj.baidubce.com`
+- BCC 直连（备用）：http://180.76.180.105/shop/ · http://180.76.180.105/shop-admin/
 
 ## 状态流转
 
