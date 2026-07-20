@@ -1,7 +1,9 @@
 <script setup>
 import { onMounted, ref } from 'vue'
+import { useRouter } from 'vue-router'
 import api from '../api'
 
+const router = useRouter()
 const props = defineProps({ id: { type: [String, Number], required: true } })
 const order = ref(null)
 const busy = ref(false)
@@ -86,6 +88,9 @@ onMounted(load)
       {{ busy ? '支付中…' : '模拟支付 ¥' + yuan(order.total_cents) }}
     </button>
     <p v-else class="ok">演示完成。商家可在后台将订单标记为「待自提 / 已完成」。</p>
+    <button class="secondary" style="width:100%;margin-top:10px" @click="router.push('/orders')">
+      返回我的订单
+    </button>
   </div>
 </template>
 

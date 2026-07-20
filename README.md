@@ -59,6 +59,10 @@ export ALLOW_ORIGIN=https://shop.yuchuntest.com
 - API 网关：`https://2jng249qsad2r.cfc-execute.bj.baidubce.com`
 - BCC 直连（备用）：http://180.76.180.105/shop/ · http://180.76.180.105/shop-admin/
 
+## 案例说明
+
+见 [`docs/CASE.md`](docs/CASE.md)（场景 / 工期 / 演示账号 / 技术栈）。
+
 ## 状态流转
 
 `pending_pay` →（模拟支付）→ `paid` →（后台）→ `ready` → `completed`

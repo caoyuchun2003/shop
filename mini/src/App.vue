@@ -80,6 +80,10 @@ function yuan(c) {
         </span>
         <span>购物车</span>
       </router-link>
+      <router-link to="/orders" class="tab-item">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 3h10a2 2 0 0 1 2 2v16l-7-3-7 3V5a2 2 0 0 1 2-2Zm2 5v2h6V8H9Zm0 4v2h6v-2H9Z" fill="currentColor"/></svg>
+        <span>订单</span>
+      </router-link>
     </nav>
   </div>
 </template>
@@ -218,7 +222,7 @@ function yuan(c) {
   max-width: 480px;
   margin: 0 auto;
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: 1fr 1fr 1fr;
   background: rgba(255, 255, 255, 0.96);
   backdrop-filter: blur(12px);
   border-top: 1px solid var(--line);

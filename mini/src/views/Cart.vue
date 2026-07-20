@@ -1,12 +1,14 @@
 <script setup>
-import { onMounted, ref } from 'vue'
+import { inject, onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import api from '../api'
 import { productEmoji, productGradient } from '../lib/productArt'
 
 const router = useRouter()
+const refreshCart = inject('refreshCart', () => {})
 const cart = ref({ items: [], total_cents: 0 })
 const loading = ref(true)
+const busyId = ref(null)
 
 function yuan(c) {
   return (c / 100).toFixed(2)
@@ -17,8 +19,33 @@ async function load() {
   try {
     const { data } = await api.get('/api/cart')
     cart.value = data
+    await refreshCart()
   } finally {
     loading.value = false
+  }
+}
+
+async function setQty(it, qty) {
+  busyId.value = it.id
+  try {
+    await api.patch(`/api/cart/items/${it.id}`, { qty })
+    await load()
+  } catch (e) {
+    alert(e.response?.data?.detail || e.message)
+  } finally {
+    busyId.value = null
+  }
+}
+
+async function remove(it) {
+  busyId.value = it.id
+  try {
+    await api.delete(`/api/cart/items/${it.id}`)
+    await load()
+  } catch (e) {
+    alert(e.response?.data?.detail || e.message)
+  } finally {
+    busyId.value = null
   }
 }
 
@@ -28,7 +55,7 @@ onMounted(load)
 <template>
   <div class="cart-page fade-in">
     <h2 class="page-title">购物车</h2>
-    <p class="page-sub">确认商品后填写自提信息并下单</p>
+    <p class="page-sub">可改数量、删除后再去结算</p>
 
     <div v-if="loading" class="card">
       <div class="skeleton" style="height: 72px; margin-bottom: 10px" />
@@ -45,13 +72,22 @@ onMounted(load)
     <template v-else>
       <div class="list">
         <article v-for="it in cart.items" :key="it.id" class="card item">
-          <div class="thumb" :style="{ background: productGradient(it.product_id) }">
-            {{ productEmoji(it.name) }}
+          <div
+            class="thumb"
+            :style="it.cover_url ? {} : { background: productGradient(it.product_id) }"
+          >
+            <img v-if="it.cover_url" :src="it.cover_url" :alt="it.name" />
+            <span v-else>{{ productEmoji(it.name) }}</span>
           </div>
           <div class="info">
             <div class="name">{{ it.name }}</div>
             <div class="muted">单价 ¥{{ yuan(it.price_cents) }}</div>
-            <div class="qty">× {{ it.qty }}</div>
+            <div class="ops">
+              <button class="qty-btn" :disabled="busyId === it.id" @click="setQty(it, it.qty - 1)">−</button>
+              <span class="qty-num">{{ it.qty }}</span>
+              <button class="qty-btn" :disabled="busyId === it.id" @click="setQty(it, it.qty + 1)">+</button>
+              <button class="rm" :disabled="busyId === it.id" @click="remove(it)">删除</button>
+            </div>
           </div>
           <div class="line-price">¥{{ yuan(it.line_cents) }}</div>
         </article>
@@ -94,10 +130,45 @@ onMounted(load)
   display: grid;
   place-items: center;
   font-size: 26px;
+  overflow: hidden;
+  background: #f3f4f6;
 }
 
+.thumb img { width: 100%; height: 100%; object-fit: cover; }
+
 .name { font-weight: 700; font-size: 15px; margin-bottom: 4px; }
-.qty { margin-top: 6px; font-size: 13px; color: var(--brand-dark); font-weight: 700; }
+
+.ops {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.qty-btn {
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border-radius: 8px;
+  background: var(--brand-soft);
+  color: var(--brand-dark);
+  box-shadow: none;
+  font-size: 16px;
+  font-weight: 800;
+}
+
+.qty-num { min-width: 18px; text-align: center; font-weight: 800; }
+
+.rm {
+  margin-left: 4px;
+  padding: 4px 8px;
+  font-size: 12px;
+  background: #fff;
+  color: #dc2626;
+  border: 1px solid #fecaca;
+  box-shadow: none;
+}
+
 .line-price { font-weight: 800; color: var(--accent); font-size: 16px; }
 
 .summary .row {

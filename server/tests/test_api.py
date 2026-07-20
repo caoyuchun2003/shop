@@ -114,3 +114,27 @@ def test_admin_create_product(client):
 
     listed = client.get("/api/products").json()
     assert any(p["id"] == body["id"] for p in listed)
+
+
+def test_cart_update_and_orders_list(client):
+    products = client.get("/api/products").json()
+    pid = products[0]["id"]
+    client.post("/api/cart/items", json={"product_id": pid, "qty": 1})
+    cart = client.get("/api/cart").json()
+    item_id = cart["items"][0]["id"]
+
+    r = client.patch(f"/api/cart/items/{item_id}", json={"qty": 3})
+    assert r.status_code == 200
+    cart = client.get("/api/cart").json()
+    assert cart["items"][0]["qty"] == 3
+
+    order = client.post(
+        "/api/orders",
+        json={"pickup_point_id": 1, "buyer_name": "B", "buyer_phone": "13700000000"},
+    ).json()
+    listed = client.get("/api/orders").json()
+    assert any(o["id"] == order["id"] for o in listed)
+
+    cancel = client.post(f"/api/orders/{order['id']}/cancel")
+    assert cancel.status_code == 200
+    assert cancel.json()["status"] == "cancelled"

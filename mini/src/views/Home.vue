@@ -109,8 +109,12 @@ onMounted(load)
 
     <div v-else class="grid">
       <article v-for="p in filtered()" :key="p.id" class="product card">
-        <div class="cover" :style="{ background: productGradient(p.id) }">
-          <span class="emoji">{{ productEmoji(p.name) }}</span>
+        <div
+          class="cover"
+          :style="p.cover_url ? {} : { background: productGradient(p.id) }"
+        >
+          <img v-if="p.cover_url" class="cover-img" :src="p.cover_url" :alt="p.name" loading="lazy" />
+          <span v-else class="emoji">{{ productEmoji(p.name) }}</span>
           <span v-if="p.stock < 10" class="stock-tag">仅剩 {{ p.stock }}</span>
         </div>
         <div class="body">
@@ -207,6 +211,14 @@ onMounted(load)
   height: 108px;
   display: grid;
   place-items: center;
+  overflow: hidden;
+  background: #f3f4f6;
+}
+
+.cover-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
 
 .emoji { font-size: 44px; filter: drop-shadow(0 8px 12px rgba(0,0,0,.12)); }

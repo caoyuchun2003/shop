@@ -2,6 +2,7 @@ import { createRouter, createWebHistory } from 'vue-router'
 import Home from './views/Home.vue'
 import Cart from './views/Cart.vue'
 import Checkout from './views/Checkout.vue'
+import Orders from './views/Orders.vue'
 import OrderDetail from './views/OrderDetail.vue'
 
 export default createRouter({
@@ -10,6 +11,7 @@ export default createRouter({
     { path: '/', component: Home },
     { path: '/cart', component: Cart },
     { path: '/checkout', component: Checkout },
+    { path: '/orders', component: Orders },
     { path: '/orders/:id', component: OrderDetail, props: true },
   ],
 })

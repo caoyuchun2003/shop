@@ -72,6 +72,10 @@ class CartAdd(BaseModel):
     qty: int = Field(ge=1, le=99)
 
 
+class CartQty(BaseModel):
+    qty: int = Field(ge=0, le=99)
+
+
 class CreateOrder(BaseModel):
     pickup_point_id: int
     buyer_name: str = Field(min_length=1, max_length=64)
@@ -97,7 +101,7 @@ def list_products(db: Session = Depends(get_db)):
             "desc": p.desc,
             "price_cents": p.price_cents,
             "stock": p.stock,
-            "cover_url": p.cover_url,
+            "cover_url": p.cover_url or "",
         }
         for p in rows
     ]
@@ -131,6 +135,7 @@ def get_cart(request: Request, db: Session = Depends(get_db)):
                 "price_cents": p.price_cents,
                 "qty": it.qty,
                 "line_cents": line,
+                "cover_url": p.cover_url or "",
             }
         )
     from fastapi.responses import JSONResponse
@@ -167,6 +172,41 @@ def add_cart(body: CartAdd, request: Request, db: Session = Depends(get_db)):
     return resp
 
 
+@app.patch("/api/cart/items/{item_id}")
+def update_cart_item(item_id: int, body: CartQty, request: Request, db: Session = Depends(get_db)):
+    sid = _session_id(request)
+    item = db.get(models.CartItem, item_id)
+    if not item or item.session_id != sid:
+        raise HTTPException(404, "购物车项不存在")
+    if body.qty <= 0:
+        db.delete(item)
+    else:
+        if item.product and body.qty > item.product.stock:
+            raise HTTPException(400, f"{item.product.name} 库存不足")
+        item.qty = body.qty
+    db.commit()
+    from fastapi.responses import JSONResponse
+
+    resp = JSONResponse({"ok": True})
+    _set_session_cookie(resp, sid)
+    return resp
+
+
+@app.delete("/api/cart/items/{item_id}")
+def delete_cart_item(item_id: int, request: Request, db: Session = Depends(get_db)):
+    sid = _session_id(request)
+    item = db.get(models.CartItem, item_id)
+    if not item or item.session_id != sid:
+        raise HTTPException(404, "购物车项不存在")
+    db.delete(item)
+    db.commit()
+    from fastapi.responses import JSONResponse
+
+    resp = JSONResponse({"ok": True})
+    _set_session_cookie(resp, sid)
+    return resp
+
+
 def _order_dict(o: models.Order) -> dict:
     return {
         "id": o.id,
@@ -193,6 +233,36 @@ def _order_dict(o: models.Order) -> dict:
         ],
         "created_at": o.created_at.isoformat() + "Z",
     }
+
+
+@app.get("/api/orders")
+def list_my_orders(request: Request, db: Session = Depends(get_db)):
+    sid = _session_id(request)
+    rows = (
+        db.query(models.Order)
+        .filter(models.Order.session_id == sid)
+        .order_by(models.Order.id.desc())
+        .all()
+    )
+    from fastapi.responses import JSONResponse
+
+    resp = JSONResponse([_order_dict(o) for o in rows])
+    _set_session_cookie(resp, sid)
+    return resp
+
+
+@app.post("/api/orders/{order_id}/cancel")
+def cancel_order(order_id: int, request: Request, db: Session = Depends(get_db)):
+    sid = _session_id(request)
+    order = db.get(models.Order, order_id)
+    if not order or order.session_id != sid:
+        raise HTTPException(404, "订单不存在")
+    if order.status != "pending_pay":
+        raise HTTPException(400, f"当前状态不可取消: {order.status}")
+    order.status = "cancelled"
+    db.commit()
+    db.refresh(order)
+    return _order_dict(order)
 
 
 @app.post("/api/orders")
@@ -303,6 +373,7 @@ class ProductUpdate(BaseModel):
     price_cents: Optional[int] = None
     stock: Optional[int] = None
     on_sale: Optional[bool] = None
+    cover_url: Optional[str] = None
 
 
 class ProductCreate(BaseModel):
@@ -368,6 +439,8 @@ def admin_patch_product(
         p.stock = body.stock
     if body.on_sale is not None:
         p.on_sale = 1 if body.on_sale else 0
+    if body.cover_url is not None:
+        p.cover_url = body.cover_url.strip()
     db.commit()
     return _product_dict(p)
 
