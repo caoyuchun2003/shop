@@ -1,0 +1,50 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: BCE::Serverless-2018-10-31
+Description: shop CFC gateway — HTTPS forward to BCC
+
+Resources:
+  ShopGateway:
+    Type: BCE::Serverless::Function
+    Properties:
+      Handler: index.handler
+      Runtime: nodejs12
+      CodeUri: ./src/
+      Description: HTTPS gateway for 邻里小店 (mock pay demo)
+      MemorySize: 128
+      Timeout: 30
+      Environment:
+        Variables:
+          ALLOW_ORIGIN: 'https://shop.yuchuntest.com'
+      Events:
+        ShopHttp:
+          Type: HTTP
+          Properties:
+            ResourcePath: /
+            Method:
+              - GET
+              - POST
+              - PUT
+              - PATCH
+              - DELETE
+              - OPTIONS
+            AuthType: anonymous
+        ShopApiHttp:
+          Type: HTTP
+          Properties:
+            ResourcePath: /api/{proxy+}
+            Method:
+              - GET
+              - POST
+              - PUT
+              - PATCH
+              - DELETE
+              - OPTIONS
+            AuthType: anonymous
+        ShopHealthHttp:
+          Type: HTTP
+          Properties:
+            ResourcePath: /health
+            Method:
+              - GET
+              - OPTIONS
+            AuthType: anonymous

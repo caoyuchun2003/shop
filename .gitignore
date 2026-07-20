@@ -1,0 +1,17 @@
+.DS_Store
+.env
+.env.*
+!.env.example
+__pycache__/
+*.pyc
+.venv/
+venv/
+node_modules/
+dist/
+unpackage/
+.idea/
+.vscode/
+*.db
+uploads/
+dist-pages/
+.secrets/
