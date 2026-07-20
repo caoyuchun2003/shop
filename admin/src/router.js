@@ -4,6 +4,7 @@ import Login from './views/Login.vue'
 import Dashboard from './views/Dashboard.vue'
 import Orders from './views/Orders.vue'
 import Products from './views/Products.vue'
+import Pickups from './views/Pickups.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -13,6 +14,7 @@ const router = createRouter({
     { path: '/dashboard', component: Dashboard },
     { path: '/orders', component: Orders },
     { path: '/products', component: Products },
+    { path: '/pickups', component: Pickups },
   ],
 })
 

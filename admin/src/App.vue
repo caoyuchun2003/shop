@@ -47,6 +47,10 @@ function logout() {
           <span class="menu-ico">🛒</span>
           <span>商品管理</span>
         </el-menu-item>
+        <el-menu-item index="/pickups">
+          <span class="menu-ico">📍</span>
+          <span>自提点</span>
+        </el-menu-item>
       </el-menu>
 
       <div class="aside-foot">

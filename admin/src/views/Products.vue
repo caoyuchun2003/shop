@@ -1,6 +1,6 @@
 <script setup>
 import { computed, onMounted, reactive, ref } from 'vue'
-import { ElMessage } from 'element-plus'
+import { ElMessage, ElMessageBox } from 'element-plus'
 import api from '../api'
 
 const rows = ref([])
@@ -106,6 +106,20 @@ async function createProduct() {
   }
 }
 
+async function remove(row) {
+  try {
+    await ElMessageBox.confirm(`删除商品「${row.name}」？历史订单明细仍会保留名称。`, '确认删除', {
+      type: 'warning',
+    })
+    await api.delete(`/api/admin/products/${row.id}`)
+    ElMessage.success('已删除')
+    await load()
+  } catch (e) {
+    if (e === 'cancel' || e === 'close') return
+    ElMessage.error(e.response?.data?.detail || e.message)
+  }
+}
+
 onMounted(load)
 </script>
 
@@ -189,9 +203,10 @@ onMounted(load)
               <el-switch v-model="row.on_sale" inline-prompt active-text="售" inactive-text="下" />
             </template>
           </el-table-column>
-          <el-table-column label="操作" width="110" fixed="right">
+          <el-table-column label="操作" width="160" fixed="right">
             <template #default="{ row }">
               <el-button type="primary" @click="save(row)">保存</el-button>
+              <el-button type="danger" plain @click="remove(row)">删除</el-button>
             </template>
           </el-table-column>
         </el-table>

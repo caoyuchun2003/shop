@@ -94,24 +94,32 @@ def health():
 @app.get("/api/products")
 def list_products(db: Session = Depends(get_db)):
     rows = db.query(models.Product).filter(models.Product.on_sale == 1).all()
-    return [
-        {
-            "id": p.id,
-            "name": p.name,
-            "desc": p.desc,
-            "price_cents": p.price_cents,
-            "stock": p.stock,
-            "cover_url": p.cover_url or "",
-        }
-        for p in rows
-    ]
+    return [_public_product(p) for p in rows]
+
+
+@app.get("/api/products/{product_id}")
+def get_product(product_id: int, db: Session = Depends(get_db)):
+    p = db.get(models.Product, product_id)
+    if not p or not p.on_sale:
+        raise HTTPException(404, "商品不存在")
+    return _public_product(p)
+
+
+def _public_product(p: models.Product) -> dict:
+    return {
+        "id": p.id,
+        "name": p.name,
+        "desc": p.desc,
+        "price_cents": p.price_cents,
+        "stock": p.stock,
+        "cover_url": p.cover_url or "",
+    }
 
 
 @app.get("/api/pickup-points")
 def list_pickups(db: Session = Depends(get_db)):
-    rows = db.query(models.PickupPoint).all()
+    rows = db.query(models.PickupPoint).order_by(models.PickupPoint.id).all()
     return [{"id": p.id, "name": p.name, "address": p.address} for p in rows]
-
 
 @app.get("/api/cart")
 def get_cart(request: Request, db: Session = Depends(get_db)):
@@ -443,6 +451,89 @@ def admin_patch_product(
         p.cover_url = body.cover_url.strip()
     db.commit()
     return _product_dict(p)
+
+
+@app.delete("/api/admin/products/{product_id}")
+def admin_delete_product(
+    product_id: int,
+    db: Session = Depends(get_db),
+    x_admin_token: Optional[str] = Header(default=None),
+):
+    _require_admin(x_admin_token)
+    p = db.get(models.Product, product_id)
+    if not p:
+        raise HTTPException(404, "商品不存在")
+    db.query(models.CartItem).filter(models.CartItem.product_id == product_id).delete()
+    db.delete(p)
+    db.commit()
+    return {"ok": True}
+
+
+class PickupBody(BaseModel):
+    name: str = Field(min_length=1, max_length=120)
+    address: str = Field(min_length=1, max_length=255)
+
+
+@app.get("/api/admin/pickup-points")
+def admin_pickups(
+    db: Session = Depends(get_db),
+    x_admin_token: Optional[str] = Header(default=None),
+):
+    _require_admin(x_admin_token)
+    rows = db.query(models.PickupPoint).order_by(models.PickupPoint.id).all()
+    return [{"id": p.id, "name": p.name, "address": p.address} for p in rows]
+
+
+@app.post("/api/admin/pickup-points")
+def admin_create_pickup(
+    body: PickupBody,
+    db: Session = Depends(get_db),
+    x_admin_token: Optional[str] = Header(default=None),
+):
+    _require_admin(x_admin_token)
+    p = models.PickupPoint(name=body.name.strip(), address=body.address.strip())
+    db.add(p)
+    db.commit()
+    db.refresh(p)
+    return {"id": p.id, "name": p.name, "address": p.address}
+
+
+@app.patch("/api/admin/pickup-points/{point_id}")
+def admin_patch_pickup(
+    point_id: int,
+    body: PickupBody,
+    db: Session = Depends(get_db),
+    x_admin_token: Optional[str] = Header(default=None),
+):
+    _require_admin(x_admin_token)
+    p = db.get(models.PickupPoint, point_id)
+    if not p:
+        raise HTTPException(404, "自提点不存在")
+    p.name = body.name.strip()
+    p.address = body.address.strip()
+    db.commit()
+    return {"id": p.id, "name": p.name, "address": p.address}
+
+
+@app.delete("/api/admin/pickup-points/{point_id}")
+def admin_delete_pickup(
+    point_id: int,
+    db: Session = Depends(get_db),
+    x_admin_token: Optional[str] = Header(default=None),
+):
+    _require_admin(x_admin_token)
+    p = db.get(models.PickupPoint, point_id)
+    if not p:
+        raise HTTPException(404, "自提点不存在")
+    used = db.query(models.Order).filter(models.Order.pickup_point_id == point_id).count()
+    if used:
+        raise HTTPException(400, "已有订单使用该自提点，无法删除")
+    total = db.query(models.PickupPoint).count()
+    if total <= 1:
+        raise HTTPException(400, "至少保留一个自提点")
+    db.delete(p)
+    db.commit()
+    return {"ok": True}
 
 
 @app.post("/api/admin/orders/{order_id}/status")

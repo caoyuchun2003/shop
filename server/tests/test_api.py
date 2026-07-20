@@ -138,3 +138,31 @@ def test_cart_update_and_orders_list(client):
     cancel = client.post(f"/api/orders/{order['id']}/cancel")
     assert cancel.status_code == 200
     assert cancel.json()["status"] == "cancelled"
+
+
+def test_product_detail_and_pickup_admin(client):
+    products = client.get("/api/products").json()
+    pid = products[0]["id"]
+    detail = client.get(f"/api/products/{pid}")
+    assert detail.status_code == 200
+    assert detail.json()["id"] == pid
+
+    headers = {"X-Admin-Token": "dev-admin"}
+    created = client.post(
+        "/api/admin/pickup-points",
+        json={"name": "测试驿站", "address": "测试路 1 号"},
+        headers=headers,
+    )
+    assert created.status_code == 200
+    point_id = created.json()["id"]
+
+    patched = client.patch(
+        f"/api/admin/pickup-points/{point_id}",
+        json={"name": "测试驿站改", "address": "测试路 2 号"},
+        headers=headers,
+    )
+    assert patched.status_code == 200
+    assert patched.json()["name"] == "测试驿站改"
+
+    deleted = client.delete(f"/api/admin/pickup-points/{point_id}", headers=headers)
+    assert deleted.status_code == 200

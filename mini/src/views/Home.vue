@@ -1,8 +1,10 @@
 <script setup>
 import { inject, onMounted, ref } from 'vue'
+import { useRouter } from 'vue-router'
 import api from '../api'
 import { productEmoji, productGradient } from '../lib/productArt'
 
+const router = useRouter()
 const refreshCart = inject('refreshCart', () => {})
 const products = ref([])
 const loading = ref(true)
@@ -108,7 +110,12 @@ onMounted(load)
     </div>
 
     <div v-else class="grid">
-      <article v-for="p in filtered()" :key="p.id" class="product card">
+      <article
+        v-for="p in filtered()"
+        :key="p.id"
+        class="product card"
+        @click="router.push(`/products/${p.id}`)"
+      >
         <div
           class="cover"
           :style="p.cover_url ? {} : { background: productGradient(p.id) }"
@@ -122,7 +129,7 @@ onMounted(load)
           <p class="desc">{{ p.desc }}</p>
           <div class="foot">
             <div class="price"><small>¥</small>{{ yuan(p.price_cents) }}</div>
-            <button class="add" :disabled="p.stock < 1" @click="add(p)">
+            <button class="add" :disabled="p.stock < 1" @click.stop="add(p)">
               {{ p.stock < 1 ? '售罄' : '+' }}
             </button>
           </div>
@@ -204,6 +211,7 @@ onMounted(load)
   overflow: hidden;
   display: flex;
   flex-direction: column;
+  cursor: pointer;
 }
 
 .cover {
