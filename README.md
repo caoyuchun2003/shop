@@ -2,7 +2,7 @@
 
 作品集项目：商品 → 购物车 → 下单 → **模拟支付** → 后台核销。
 
-> 支付为演示桩，接单时可替换为微信支付。第一期用户端为 **H5**（后续可套 uni-app 出小程序）。
+> 支付为演示桩，接单时可替换为微信支付。用户端：**H5** + **uni-app 微信小程序壳**（共用同一 API）。
 
 ## 目录
 
@@ -10,6 +10,7 @@
 | --- | --- | --- |
 | `server/` | FastAPI + SQLite | `8020` |
 | `mini/` | 用户端 H5（Vue3） | `5173` |
+| `mp/` | uni-app 微信小程序壳 | 微信开发者工具 |
 | `admin/` | 管理后台（Vue3 + Element Plus） | `5174` |
 | `cfc/` | 百度 CFC HTTPS 网关 | — |
 
@@ -26,6 +27,10 @@ cd mini && npm install && npm run dev
 
 # 3) 后台
 cd admin && npm install && npm run dev
+
+# 4) 微信小程序壳（可选）
+cd mp && npm install && npm run dev:mp-weixin
+# 用微信开发者工具打开 mp/dist/dev/mp-weixin ，详见 mp/README.md
 ```
 
 - 用户端：http://127.0.0.1:5173/
@@ -58,6 +63,23 @@ export ALLOW_ORIGIN=https://shop.yuchuntest.com
 - 后台：https://shop.yuchuntest.com/admin/ （登录令牌默认 `dev-admin`）
 - API 网关：`https://2jng249qsad2r.cfc-execute.bj.baidubce.com`
 - BCC 直连（备用）：http://180.76.180.105/shop/ · http://180.76.180.105/shop-admin/
+
+## 演示视频
+
+| 片段 | 文件 |
+| --- | --- |
+| 用户端：加购 → 下单 → 模拟支付 | [`docs/demo/01-h5-order-pay.webm`](docs/demo/01-h5-order-pay.webm) |
+| 后台：标待自提 → 核销完成 | [`docs/demo/02-admin-fulfill.webm`](docs/demo/02-admin-fulfill.webm) |
+
+关键帧：
+
+<p>
+  <img src="docs/demo/shot-01-home.png" alt="首页" width="180" />
+  <img src="docs/demo/shot-05-paid.png" alt="已支付" width="180" />
+  <img src="docs/demo/shot-06-admin-orders.png" alt="后台订单" width="360" />
+</p>
+
+重录：起 `8020` / `5173` / `5174` 后执行 `cd scripts && env -u VITE_API_URL npm run record-demo`。
 
 ## 案例说明
 
