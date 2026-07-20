@@ -1,13 +1,23 @@
 <script setup>
 import { computed } from 'vue'
-import { useRoute } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
+import { clearToken } from './auth'
 
 const route = useRoute()
+const router = useRouter()
 const active = computed(() => route.path)
+const isLogin = computed(() => route.path === '/login')
+
+function logout() {
+  clearToken()
+  router.replace('/login')
+}
 </script>
 
 <template>
-  <el-container class="layout">
+  <router-view v-if="isLogin" />
+
+  <el-container v-else class="layout">
     <el-aside width="232px" class="aside">
       <div class="brand">
         <div class="logo">邻</div>
@@ -25,6 +35,10 @@ const active = computed(() => route.path)
         text-color="#d1fae5"
         active-text-color="#ffffff"
       >
+        <el-menu-item index="/dashboard">
+          <span class="menu-ico">📊</span>
+          <span>运营看板</span>
+        </el-menu-item>
         <el-menu-item index="/orders">
           <span class="menu-ico">📦</span>
           <span>订单管理</span>
@@ -37,7 +51,7 @@ const active = computed(() => route.path)
 
       <div class="aside-foot">
         <div class="pill">模拟演示</div>
-        <div class="tip">Token: dev-admin</div>
+        <el-button class="logout" @click="logout">退出登录</el-button>
       </div>
     </el-aside>
 
@@ -126,12 +140,14 @@ const active = computed(() => route.path)
   border-radius: 999px;
   background: rgba(255, 255, 255, 0.14);
   border: 1px solid rgba(255, 255, 255, 0.18);
+  margin-bottom: 12px;
 }
 
-.tip {
-  margin-top: 10px;
-  font-size: 12px;
-  opacity: 0.75;
+.logout {
+  width: 100%;
+  background: rgba(255, 255, 255, 0.12) !important;
+  border: 1px solid rgba(255, 255, 255, 0.2) !important;
+  color: #fff !important;
 }
 
 .topbar {

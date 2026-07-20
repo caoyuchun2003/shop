@@ -29,7 +29,7 @@ cd admin && npm install && npm run dev
 ```
 
 - 用户端：http://127.0.0.1:5173/
-- 后台：http://127.0.0.1:5174/ （请求头 `X-Admin-Token: dev-admin`，前端默认已带）
+- 后台：http://127.0.0.1:5174/ （登录令牌默认 `dev-admin`）
 
 ## 测试
 
@@ -55,7 +55,7 @@ export ALLOW_ORIGIN=https://shop.yuchuntest.com
 线上：
 
 - 用户端：https://shop.yuchuntest.com/
-- 后台：https://shop.yuchuntest.com/admin/ （Token 默认 `dev-admin`）
+- 后台：https://shop.yuchuntest.com/admin/ （登录令牌默认 `dev-admin`）
 - API 网关：`https://2jng249qsad2r.cfc-execute.bj.baidubce.com`
 - BCC 直连（备用）：http://180.76.180.105/shop/ · http://180.76.180.105/shop-admin/
 

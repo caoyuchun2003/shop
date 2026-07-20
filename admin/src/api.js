@@ -1,11 +1,13 @@
 import axios from 'axios'
+import { getToken } from './auth'
 
 const api = axios.create({
   baseURL: import.meta.env.VITE_API_URL || '',
 })
 
 api.interceptors.request.use((cfg) => {
-  cfg.headers['X-Admin-Token'] = localStorage.getItem('ADMIN_TOKEN') || 'dev-admin'
+  const token = getToken()
+  if (token) cfg.headers['X-Admin-Token'] = token
   return cfg
 })
 
