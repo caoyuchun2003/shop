@@ -1,16 +1,39 @@
 <script setup>
-import { computed, onMounted, ref } from 'vue'
+import { computed, onMounted, reactive, ref } from 'vue'
 import { ElMessage } from 'element-plus'
 import api from '../api'
 
 const rows = ref([])
 const loading = ref(false)
+const dialogVisible = ref(false)
+const creating = ref(false)
+
+const form = reactive({
+  name: '',
+  desc: '',
+  price_yuan: 9.9,
+  stock: 50,
+  on_sale: true,
+})
 
 const stats = computed(() => ({
   total: rows.value.length,
   onSale: rows.value.filter((r) => r.on_sale).length,
   low: rows.value.filter((r) => r.stock < 10).length,
 }))
+
+function resetForm() {
+  form.name = ''
+  form.desc = ''
+  form.price_yuan = 9.9
+  form.stock = 50
+  form.on_sale = true
+}
+
+function openCreate() {
+  resetForm()
+  dialogVisible.value = true
+}
 
 async function load() {
   loading.value = true
@@ -36,16 +59,46 @@ async function save(row) {
     return
   }
   try {
-    await api.patch(`/api/admin/products/${row.id}`, {
+    const { data } = await api.patch(`/api/admin/products/${row.id}`, {
       name: row.name.trim(),
+      desc: row.desc || '',
       price_cents: cents,
       stock: row.stock,
       on_sale: !!row.on_sale,
     })
-    row.price_cents = cents
+    Object.assign(row, data, { price_yuan: Number((data.price_cents / 100).toFixed(2)) })
     ElMessage.success('已保存')
   } catch (e) {
     ElMessage.error(e.response?.data?.detail || e.message)
+  }
+}
+
+async function createProduct() {
+  const cents = Math.round(Number(form.price_yuan) * 100)
+  if (!form.name.trim()) {
+    ElMessage.warning('请填写商品名称')
+    return
+  }
+  if (!(cents > 0)) {
+    ElMessage.warning('价格需大于 0')
+    return
+  }
+  creating.value = true
+  try {
+    await api.post('/api/admin/products', {
+      name: form.name.trim(),
+      desc: form.desc.trim(),
+      price_cents: cents,
+      stock: form.stock,
+      on_sale: !!form.on_sale,
+    })
+    ElMessage.success('商品已添加')
+    dialogVisible.value = false
+    await load()
+  } catch (e) {
+    ElMessage.error(e.response?.data?.detail || e.message)
+  } finally {
+    creating.value = false
   }
 }
 
@@ -57,9 +110,12 @@ onMounted(load)
     <div class="page-head">
       <div>
         <h2>商品管理</h2>
-        <p>调整价格、库存与上下架状态</p>
+        <p>添加商品，调整价格、库存与上下架</p>
       </div>
-      <el-button type="primary" @click="load">刷新商品</el-button>
+      <div class="actions">
+        <el-button @click="load">刷新</el-button>
+        <el-button type="primary" @click="openCreate">添加商品</el-button>
+      </div>
     </div>
 
     <div class="stats">
@@ -85,12 +141,18 @@ onMounted(load)
 
     <div class="panel">
       <div class="panel-body">
-        <el-table :data="rows" v-loading="loading" stripe empty-text="暂无商品">
+        <el-table :data="rows" v-loading="loading" stripe empty-text="暂无商品，点击右上角添加">
           <el-table-column prop="id" label="ID" width="70" />
-          <el-table-column label="商品" min-width="220">
+          <el-table-column label="商品" min-width="240">
             <template #default="{ row }">
               <el-input v-model="row.name" size="default" placeholder="商品名称" />
-              <div class="desc">{{ row.desc }}</div>
+              <el-input
+                v-model="row.desc"
+                class="desc-input"
+                type="textarea"
+                :rows="2"
+                placeholder="商品简介"
+              />
             </template>
           </el-table-column>
           <el-table-column label="售价（元）" width="160">
@@ -124,20 +186,53 @@ onMounted(load)
         </el-table>
       </div>
     </div>
+
+    <el-dialog v-model="dialogVisible" title="添加商品" width="480px" destroy-on-close>
+      <el-form label-position="top">
+        <el-form-item label="商品名称" required>
+          <el-input v-model="form.name" placeholder="例如：红颜草莓 1 斤" />
+        </el-form-item>
+        <el-form-item label="简介">
+          <el-input v-model="form.desc" type="textarea" :rows="3" placeholder="一两句卖点描述" />
+        </el-form-item>
+        <div class="form-row">
+          <el-form-item label="售价（元）" required>
+            <el-input-number
+              v-model="form.price_yuan"
+              :min="0.01"
+              :step="0.1"
+              :precision="2"
+              controls-position="right"
+            />
+          </el-form-item>
+          <el-form-item label="库存" required>
+            <el-input-number v-model="form.stock" :min="0" controls-position="right" />
+          </el-form-item>
+        </div>
+        <el-form-item label="上架销售">
+          <el-switch v-model="form.on_sale" />
+        </el-form-item>
+      </el-form>
+      <template #footer>
+        <el-button @click="dialogVisible = false">取消</el-button>
+        <el-button type="primary" :loading="creating" @click="createProduct">确认添加</el-button>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
 <style scoped>
-.desc {
-  margin-top: 6px;
-  color: var(--muted);
-  font-size: 12px;
-  line-height: 1.4;
-}
+.actions { display: flex; gap: 8px; }
+.desc-input { margin-top: 8px; }
 .warn {
   margin-top: 4px;
   color: #ea580c;
   font-size: 12px;
   font-weight: 700;
+}
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
 }
 </style>

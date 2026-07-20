@@ -92,3 +92,25 @@ def test_admin_mark_ready(client):
     )
     assert r.status_code == 200
     assert r.json()["status"] == "ready"
+
+
+def test_admin_create_product(client):
+    r = client.post(
+        "/api/admin/products",
+        json={
+            "name": "新鲜菠菜 1 斤",
+            "desc": "当日采摘",
+            "price_cents": 680,
+            "stock": 30,
+            "on_sale": True,
+        },
+        headers={"X-Admin-Token": "dev-admin"},
+    )
+    assert r.status_code == 200
+    body = r.json()
+    assert body["name"] == "新鲜菠菜 1 斤"
+    assert body["price_cents"] == 680
+    assert body["id"] > 0
+
+    listed = client.get("/api/products").json()
+    assert any(p["id"] == body["id"] for p in listed)

@@ -294,18 +294,7 @@ def admin_products(
 ):
     _require_admin(x_admin_token)
     rows = db.query(models.Product).order_by(models.Product.id).all()
-    return [
-        {
-            "id": p.id,
-            "name": p.name,
-            "desc": p.desc,
-            "price_cents": p.price_cents,
-            "stock": p.stock,
-            "on_sale": bool(p.on_sale),
-            "cover_url": p.cover_url,
-        }
-        for p in rows
-    ]
+    return [_product_dict(p) for p in rows]
 
 
 class ProductUpdate(BaseModel):
@@ -314,6 +303,48 @@ class ProductUpdate(BaseModel):
     price_cents: Optional[int] = None
     stock: Optional[int] = None
     on_sale: Optional[bool] = None
+
+
+class ProductCreate(BaseModel):
+    name: str = Field(min_length=1, max_length=120)
+    desc: str = ""
+    price_cents: int = Field(ge=1)
+    stock: int = Field(default=100, ge=0)
+    on_sale: bool = True
+    cover_url: str = ""
+
+
+def _product_dict(p: models.Product) -> dict:
+    return {
+        "id": p.id,
+        "name": p.name,
+        "desc": p.desc,
+        "price_cents": p.price_cents,
+        "stock": p.stock,
+        "on_sale": bool(p.on_sale),
+        "cover_url": p.cover_url,
+    }
+
+
+@app.post("/api/admin/products")
+def admin_create_product(
+    body: ProductCreate,
+    db: Session = Depends(get_db),
+    x_admin_token: Optional[str] = Header(default=None),
+):
+    _require_admin(x_admin_token)
+    p = models.Product(
+        name=body.name.strip(),
+        desc=(body.desc or "").strip(),
+        price_cents=body.price_cents,
+        stock=body.stock,
+        on_sale=1 if body.on_sale else 0,
+        cover_url=(body.cover_url or "").strip(),
+    )
+    db.add(p)
+    db.commit()
+    db.refresh(p)
+    return _product_dict(p)
 
 
 @app.patch("/api/admin/products/{product_id}")
@@ -338,7 +369,7 @@ def admin_patch_product(
     if body.on_sale is not None:
         p.on_sale = 1 if body.on_sale else 0
     db.commit()
-    return {"ok": True}
+    return _product_dict(p)
 
 
 @app.post("/api/admin/orders/{order_id}/status")
