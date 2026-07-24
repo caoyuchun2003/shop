@@ -6,7 +6,7 @@ from . import models
 # 注意：旧鸡蛋图 photo-1582722872448… 已 404，勿再引用
 COVERS = {
     "草莓": "https://images.unsplash.com/photo-1464965911861-746a04b4bca6?w=400&h=400&fit=crop",
-    "鸡蛋": "https://images.unsplash.com/photo-1491925432139-be6843d1dfbf?w=400&h=400&fit=crop",
+    "鸡蛋": "https://images.unsplash.com/photo-1518569656558-1f1000615418?w=400&h=400&fit=crop",
     "豆浆": "https://images.unsplash.com/photo-1623065422902-30a2d299bbe4?w=400&h=400&fit=crop",
     "青菜": "https://images.unsplash.com/photo-1512621776951-a57141f2eefd?w=400&h=400&fit=crop",
     "蔬菜": "https://images.unsplash.com/photo-1512621776951-a57141f2eefd?w=400&h=400&fit=crop",
@@ -15,6 +15,7 @@ COVERS = {
 # 历史坏链（启动时强制替换）
 BROKEN_COVER_FRAGMENTS = (
     "photo-1582722872448-8a0d0a63c5b2",
+    "photo-1491925432139-be6843d1dfbf",  # 鸡蛋偏空白构图
 )
 
 
