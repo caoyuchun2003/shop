@@ -9,6 +9,15 @@ const refreshCart = inject('refreshCart', () => {})
 const cart = ref({ items: [], total_cents: 0 })
 const loading = ref(true)
 const busyId = ref(null)
+const brokenCovers = ref(new Set())
+
+function showCover(it) {
+  return Boolean(it.cover_url) && !brokenCovers.value.has(it.id)
+}
+
+function markBrokenCover(it) {
+  brokenCovers.value = new Set(brokenCovers.value).add(it.id)
+}
 
 function yuan(c) {
   return (c / 100).toFixed(2)
@@ -74,9 +83,14 @@ onMounted(load)
         <article v-for="it in cart.items" :key="it.id" class="card item">
           <div
             class="thumb"
-            :style="it.cover_url ? {} : { background: productGradient(it.product_id) }"
+            :style="showCover(it) ? {} : { background: productGradient(it.product_id) }"
           >
-            <img v-if="it.cover_url" :src="it.cover_url" :alt="it.name" />
+            <img
+              v-if="showCover(it)"
+              :src="it.cover_url"
+              :alt="it.name"
+              @error="markBrokenCover(it)"
+            />
             <span v-else>{{ productEmoji(it.name) }}</span>
           </div>
           <div class="info">

@@ -14,6 +14,7 @@ const err = ref('')
 const qty = ref(1)
 const busy = ref(false)
 const toast = ref('')
+const coverBroken = ref(false)
 
 function yuan(c) {
   return (c / 100).toFixed(2)
@@ -22,6 +23,7 @@ function yuan(c) {
 async function load() {
   loading.value = true
   err.value = ''
+  coverBroken.value = false
   try {
     const { data } = await api.get(`/api/products/${props.id}`)
     product.value = data
@@ -69,9 +71,14 @@ onMounted(load)
     <template v-else-if="product">
       <div
         class="hero-cover card"
-        :style="product.cover_url ? {} : { background: productGradient(product.id) }"
+        :style="product.cover_url && !coverBroken ? {} : { background: productGradient(product.id) }"
       >
-        <img v-if="product.cover_url" :src="product.cover_url" :alt="product.name" />
+        <img
+          v-if="product.cover_url && !coverBroken"
+          :src="product.cover_url"
+          :alt="product.name"
+          @error="coverBroken = true"
+        />
         <span v-else class="emoji">{{ productEmoji(product.name) }}</span>
       </div>
 

@@ -11,6 +11,15 @@ const loading = ref(true)
 const error = ref('')
 const toast = ref('')
 const activeCat = ref('全部')
+const brokenCovers = ref(new Set())
+
+function showCover(p) {
+  return Boolean(p.cover_url) && !brokenCovers.value.has(p.id)
+}
+
+function markBrokenCover(p) {
+  brokenCovers.value = new Set(brokenCovers.value).add(p.id)
+}
 
 const categories = ['全部', '生鲜', '蛋奶', '饮品']
 
@@ -118,9 +127,16 @@ onMounted(load)
       >
         <div
           class="cover"
-          :style="p.cover_url ? {} : { background: productGradient(p.id) }"
+          :style="showCover(p) ? {} : { background: productGradient(p.id) }"
         >
-          <img v-if="p.cover_url" class="cover-img" :src="p.cover_url" :alt="p.name" loading="lazy" />
+          <img
+            v-if="showCover(p)"
+            class="cover-img"
+            :src="p.cover_url"
+            :alt="p.name"
+            loading="lazy"
+            @error="markBrokenCover(p)"
+          />
           <span v-else class="emoji">{{ productEmoji(p.name) }}</span>
           <span v-if="p.stock < 10" class="stock-tag">仅剩 {{ p.stock }}</span>
         </div>

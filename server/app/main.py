@@ -11,7 +11,7 @@ from sqlalchemy.orm import Session
 
 from . import models
 from .db import Base, SessionLocal, engine, get_db
-from .seed import seed_if_empty
+from .seed import cover_for_name, seed_if_empty
 
 load_dotenv()
 
@@ -412,13 +412,15 @@ def admin_create_product(
     x_admin_token: Optional[str] = Header(default=None),
 ):
     _require_admin(x_admin_token)
+    name = body.name.strip()
+    cover = (body.cover_url or "").strip() or cover_for_name(name)
     p = models.Product(
-        name=body.name.strip(),
+        name=name,
         desc=(body.desc or "").strip(),
         price_cents=body.price_cents,
         stock=body.stock,
         on_sale=1 if body.on_sale else 0,
-        cover_url=(body.cover_url or "").strip(),
+        cover_url=cover,
     )
     db.add(p)
     db.commit()
