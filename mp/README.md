@@ -2,6 +2,9 @@
 
 与 `mini/` H5 共用同一套 FastAPI 后端（默认走 CFC HTTPS）。
 
+**预览清单（推荐照着做）→ [`PREVIEW.md`](PREVIEW.md)**  
+录屏口播 → 仓库 [`docs/DEMO-SCRIPT.md`](../docs/DEMO-SCRIPT.md)
+
 ## 本地运行
 
 ```bash
@@ -28,7 +31,7 @@ VITE_API_URL=http://127.0.0.1:8020 npm run dev:mp-weixin
 
 ```bash
 npm run build:mp-weixin
-# 产物：mp/dist/build/mp-weixin
+# 产物：mp/dist/build/mp-weixin（正式导入用这个）
 ```
 
 ## 页面

@@ -68,8 +68,11 @@ export ALLOW_ORIGIN=https://shop.yuchuntest.com
 
 | 片段 | 文件 |
 | --- | --- |
+| 合并版（对外） | 入口站 [`/cases/demo/shop-demo.mp4`](https://yuchuntest.com/cases/demo/shop-demo.mp4) · 案例页 https://yuchuntest.com/cases/shop.html |
 | 用户端：加购 → 下单 → 模拟支付 | [`docs/demo/01-h5-order-pay.webm`](docs/demo/01-h5-order-pay.webm) |
 | 后台：标待自提 → 核销完成 | [`docs/demo/02-admin-fulfill.webm`](docs/demo/02-admin-fulfill.webm) |
+
+录屏脚本：[`docs/DEMO-SCRIPT.md`](docs/DEMO-SCRIPT.md) · 微信预览：[`mp/PREVIEW.md`](mp/PREVIEW.md)
 
 关键帧：
 

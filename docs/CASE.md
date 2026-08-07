@@ -4,7 +4,10 @@
 | --- | --- |
 | 场景 | 社区自提轻团购（非美团级商城） |
 | 演示地址 | 用户端 https://shop.yuchuntest.com/ · 后台 https://shop.yuchuntest.com/admin/ |
-| 演示视频 | [`docs/demo/`](demo/)：H5 下单支付 + 后台核销（`.webm`）与关键截图 |
+| 案例页（对外甩） | https://yuchuntest.com/cases/shop.html |
+| 演示视频 | 案例页内嵌；仓库 [`demo/`](demo/)（`.webm` / `shop-demo.mp4`）与关键截图 |
+| 演示脚本 | [`DEMO-SCRIPT.md`](DEMO-SCRIPT.md) |
+| 微信预览 | [`mp/PREVIEW.md`](../mp/PREVIEW.md) |
 | 演示账号 | 后台令牌 `dev-admin` |
 | 工期参考 | 骨架 + 支付闭环约 1～2 周；视觉与运营台打磨约再 3～5 天 |
 | 技术栈 | Vue 3 · FastAPI · SQLite · Element Plus · uni-app（微信壳）· 百度 CFC 网关 · BCC 容器 · GitHub Pages |
