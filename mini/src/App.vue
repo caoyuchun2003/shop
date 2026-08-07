@@ -45,9 +45,15 @@ function yuan(c) {
         </div>
         <div class="notice">
           <span class="notice-icon">📍</span>
-          <div>
+          <div class="notice-body">
             <div class="notice-title">社区自提 · 次日 17:00 前可取</div>
-            <div class="notice-sub">下单后可在驿站/便利店核销取货</div>
+            <div class="notice-sub">下单模拟支付后，可到运营后台演示核销</div>
+            <a
+              class="notice-link"
+              href="https://shop.yuchuntest.com/admin/"
+              target="_blank"
+              rel="noopener"
+            >运营后台演示 →</a>
           </div>
         </div>
       </div>
@@ -169,8 +175,19 @@ function yuan(c) {
 }
 
 .notice-icon { font-size: 18px; line-height: 1.2; }
+.notice-body { min-width: 0; flex: 1; }
 .notice-title { font-size: 13px; font-weight: 700; }
 .notice-sub { font-size: 11px; opacity: 0.86; margin-top: 2px; }
+.notice-link {
+  display: inline-block;
+  margin-top: 6px;
+  font-size: 11px;
+  font-weight: 700;
+  color: #fff;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  opacity: 0.95;
+}
 
 .main {
   padding: 0 14px 16px;

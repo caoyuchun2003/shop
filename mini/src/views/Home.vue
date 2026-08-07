@@ -82,7 +82,7 @@ onMounted(load)
       <div class="promo-text">
         <div class="promo-tag">今日特惠</div>
         <div class="promo-title">邻居拼团 · 新鲜直达</div>
-        <div class="promo-sub">满 3 件享模拟支付演示价</div>
+        <div class="promo-sub">社区自提 · 模拟支付全流程演示</div>
       </div>
       <div class="promo-art">🧺</div>
     </section>

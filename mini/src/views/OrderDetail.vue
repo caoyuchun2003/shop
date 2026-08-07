@@ -6,8 +6,13 @@ import api from '../api'
 const router = useRouter()
 const props = defineProps({ id: { type: [String, Number], required: true } })
 const order = ref(null)
+const loading = ref(true)
 const busy = ref(false)
 const err = ref('')
+const loadErr = ref('')
+
+const ADMIN_URL = 'https://shop.yuchuntest.com/admin/'
+const ADMIN_TOKEN = 'dev-admin'
 
 const statusMap = {
   pending_pay: { label: '待支付', hint: '请完成模拟支付', tone: 'warn' },
@@ -29,8 +34,16 @@ function stepIndex(status) {
 }
 
 async function load() {
-  const { data } = await api.get(`/api/orders/${props.id}`)
-  order.value = data
+  loading.value = true
+  loadErr.value = ''
+  try {
+    const { data } = await api.get(`/api/orders/${props.id}`)
+    order.value = data
+  } catch (e) {
+    loadErr.value = e.response?.data?.detail || e.message || '订单加载失败'
+  } finally {
+    loading.value = false
+  }
 }
 
 async function pay() {
@@ -50,7 +63,23 @@ onMounted(load)
 </script>
 
 <template>
-  <div v-if="order" class="order fade-in">
+  <div v-if="loading" class="order fade-in skeleton">
+    <div class="card sk-block" />
+    <div class="card sk-block short" />
+    <p class="muted center">订单加载中…</p>
+  </div>
+
+  <div v-else-if="loadErr" class="order fade-in">
+    <div class="card">
+      <p class="err">{{ loadErr }}</p>
+      <button @click="load">重新加载</button>
+      <button class="secondary" style="width:100%;margin-top:10px" @click="router.push('/orders')">
+        返回我的订单
+      </button>
+    </div>
+  </div>
+
+  <div v-else-if="order" class="order fade-in">
     <div class="status card" :class="statusMap[order.status]?.tone || 'muted'">
       <div class="status-label">{{ statusMap[order.status]?.label || order.status }}</div>
       <div class="status-hint">{{ statusMap[order.status]?.hint }}</div>
@@ -87,7 +116,17 @@ onMounted(load)
     <button v-if="order.status === 'pending_pay'" :disabled="busy" @click="pay">
       {{ busy ? '支付中…' : '模拟支付 ¥' + yuan(order.total_cents) }}
     </button>
-    <p v-else class="ok">演示完成。商家可在后台将订单标记为「待自提 / 已完成」。</p>
+
+    <div v-if="order.status !== 'pending_pay' && order.status !== 'cancelled'" class="card demo-next">
+      <h3>继续演示 · 商家后台</h3>
+      <p class="demo-copy">用户端已支付。打开运营后台，把本单标成「待自提」再「核销完成」，走完闭环。</p>
+      <ol class="demo-steps">
+        <li>打开后台，令牌填 <code>{{ ADMIN_TOKEN }}</code></li>
+        <li>找到订单 #{{ order.id }} → 标待自提 → 核销完成</li>
+      </ol>
+      <a class="admin-cta" :href="ADMIN_URL" target="_blank" rel="noopener">打开管理后台 →</a>
+    </div>
+
     <button class="secondary" style="width:100%;margin-top:10px" @click="router.push('/orders')">
       返回我的订单
     </button>
@@ -149,6 +188,49 @@ h3 { margin: 0 0 10px; font-size: 15px; }
 }
 
 .err { color: #dc2626; font-size: 13px; margin: 0; }
-.ok { color: var(--brand-dark); font-size: 13px; margin: 0; line-height: 1.5; }
+.center { text-align: center; margin: 8px 0 0; }
 button { width: 100%; }
+
+.skeleton .sk-block {
+  height: 88px;
+  background: linear-gradient(90deg, #f1f5f9 25%, #e2e8f0 50%, #f1f5f9 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.2s ease infinite;
+}
+.skeleton .sk-block.short { height: 56px; }
+@keyframes shimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+.demo-next h3 { margin-bottom: 8px; }
+.demo-copy { margin: 0; font-size: 13px; color: #4b5563; line-height: 1.55; }
+.demo-steps {
+  margin: 10px 0 14px;
+  padding-left: 18px;
+  font-size: 13px;
+  color: #374151;
+  line-height: 1.6;
+}
+.demo-steps code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 12px;
+  background: #ecfdf5;
+  color: #047857;
+  padding: 1px 6px;
+  border-radius: 6px;
+}
+.admin-cta {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  padding: 12px 14px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #0d9f6e, #087a55);
+  color: #fff;
+  font-weight: 700;
+  font-size: 14px;
+  text-decoration: none;
+}
 </style>
